@@ -1,7 +1,6 @@
 import cv2
 
+scr_size = input("enter monitor diagonal (inches): ")  # monitor diagonal
+scr_height = input("enter monitor height (pixels): ")
+scr_widght = input("enter monitor height (pixels): ")
 
-img = cv2.imread('girl.jpg', cv2.IMREAD_GRAYSCALE)
-cv2.imshow('girl', img)
-cv2.waitKey(0)
-cv2.imwrite('graygirl.jpg', img)
