@@ -1,5 +1,5 @@
 import cv2
-import numpy
+import numpy as np
 
 scr_size = input("enter monitor diagonal (inches): ")  # monitor diagonal
 scr_height = input("enter monitor height (pixels): ")
