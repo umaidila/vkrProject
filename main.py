@@ -1,5 +1,4 @@
 from math import sqrt
-from time import sleep
 from tkinter import *
 import cv2
 import numpy as np
@@ -7,19 +6,27 @@ import numpy as np
 
 def showVideo():
 
-    def shift(a):  # смещение массива по горизонтали на n пикселей
 
+    def shift(a,l):  # смещение массива по горизонтали, l - длина
+        temp = a[:,0]
+        a[:,:l-1] = a[:,1:]
+        a[:,l-1] = temp
+        return a
 
+    lbl4.config(text="wait")
 
     scr_diag = int(txt1.get())
     scr_width = int(txt2.get())
     scr_height = int(txt3.get())
 
     # fourcc = cv2.VideoWriter_fourcc(*'divx')
-    out = cv2.VideoWriter('output.mp4', 0x00000021, 10.0, (scr_width, scr_height))
+    out = cv2.VideoWriter('output.mp4', 0x00000021, int(txt4.get()), (scr_width, scr_height))
 
     black_cell = cv2.imread('black_cell.jpg')
     white_cell = cv2.imread('white_cell.jpg')
+
+    temp = cv2.imread('black_cell.jpg')
+    temp = cv2.resize(temp,(1,scr_height))
 
     diag_pix = sqrt(scr_width ** 2 + scr_height ** 2)  # диагональ в пикселях
     side = int(diag_pix / scr_diag)  # сторона клетки в пикселях (по идее 1 дюйм)
@@ -71,11 +78,12 @@ def showVideo():
 
     swapBuffer = cv2.imread('girl.jpg')
     swapBuffer = cv2.resize(swapBuffer, (scr_width, scr_height))
-
+    #test
+    #
     for i in range(1000):
         swapBuffer = window[:, :scr_width]
         out.write(swapBuffer)
-        window = shift(window,-1,len(xArray)*side)
+        window = shift(window,(len(xArray))*side)
 
     out.release()
     lbl4.config(text="done")
