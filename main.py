@@ -29,10 +29,12 @@ def showVideo():
 
     window = cv2.imread('girl.jpg')
 
-    if len(xArray) % 2 == 0:
-        window = cv2.resize(window,(scr_width+side-scr_width%side,scr_height)) #расширяем окно по х, чтобы нарисовать обрезанные клетки
-        xArray = np.arange(0,scr_width+side-scr_width%side,side)
+    if len(xArray) % 2 != 0:
+        print('нечёт')
+        window = cv2.resize(window,(scr_width+2*side-scr_width%side,scr_height)) #расширяем окно по х, чтобы нарисовать обрезанные клетки
+        xArray = np.arange(0,scr_width+2*side-scr_width%side,side)
     else:
+        print('чет')
         window = cv2.resize(window,(scr_width+2*side-scr_width%side,scr_height))
         xArray = np.arange(0,scr_width+2*side-scr_width%side,side)
 
@@ -60,13 +62,13 @@ def showVideo():
 
     swapBuffer = cv2.imread('girl.jpg')
     swapBuffer = cv2.resize(swapBuffer,(scr_width, scr_height))
-    if len(xArray)%2 ==0:
+    if len(xArray)%2 !=0:
         for i in range(1000):
-            swapBuffer = window[:,i%side:scr_width+i%side] # сдвигаем влево как бы
+            swapBuffer = window[:,i%(2*side):scr_width+i%(2*side)] # сдвигаем влево как бы
             out.write(swapBuffer)
     else:
         for i in range(1000):
-            swapBuffer = window[:,i%side:scr_width+i%side] # сдвигаем влево как бы
+            swapBuffer = window[:,i%(2*side):scr_width+i%(2*side)] # сдвигаем влево как бы
             out.write(swapBuffer)
                 #window = window[0:scr_height,-(scr_width-1):1]  # сдвигаем влево с циклом
     out.release()
