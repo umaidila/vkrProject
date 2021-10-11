@@ -30,64 +30,45 @@ def showVideo():
     window = cv2.imread('girl.jpg')
 
     if len(xArray) % 2 == 0:
-        window = cv2.resize(window(scr_width+side-scr_width%side,scr_height))
+        window = cv2.resize(window,(scr_width+side-scr_width%side,scr_height)) #расширяем окно по х, чтобы нарисовать обрезанные клетки
+        xArray = np.arange(0,scr_width+side-scr_width%side,side)
     else:
+        window = cv2.resize(window,(scr_width+2*side-scr_width%side,scr_height))
+        xArray = np.arange(0,scr_width+2*side-scr_width%side,side)
 
-
-    window = cv2.resize(window, (scr_width, scr_height))  # как фон
+    #window = cv2.resize(window, (scr_width, scr_height))  # как фон
 
     for i in range(len(yArray) - 1):
         isBlackStart = not isBlackStart
         isBlack = isBlackStart # бегунок для строчки
         for j in range(len(xArray)):
-            if j == len(xArray) - 1:  # если последняя клетка, то она будет обрезанной, нужно сначала изменить размер
-
                 if isBlack:
-                    black_cell = cv2.resize(black_cell, (scr_width - xArray[j], side))
-                    window[yArray[i]:yArray[i + 1], xArray[j]:scr_width] = black_cell
-                    black_cell = cv2.resize(black_cell, (side, side))  # и обратно
-                else:
-                    white_cell = cv2.resize(white_cell, (scr_width - xArray[j], side))
-                    window[yArray[i]:yArray[i + 1], xArray[j]:scr_width] = white_cell
-                    white_cell = cv2.resize(white_cell, (side, side))
-            else:
-                if isBlack:
-                    window[yArray[i]:yArray[i + 1], xArray[j]:xArray[j + 1]] = black_cell
+                    window[yArray[i]:yArray[i + 1], xArray[j]:xArray[j]+side] = black_cell
                     isBlack = False
                 else:
-                    window[yArray[i]:yArray[i + 1], xArray[j]:xArray[j + 1]] = white_cell
+                    window[yArray[i]:yArray[i + 1], xArray[j]:xArray[j]+side] = white_cell
                     isBlack = True
 
     black_cell = cv2.resize(black_cell, (side, scr_height - yArray[len(yArray) - 1]))
     white_cell = cv2.resize(white_cell, (side, scr_height - yArray[len(yArray) - 1]))
-    for i in range(len(xArray) - 1):  # заполение нижнего столбца
+    for i in range(len(xArray)):  # заполение нижнего столбца
         isBlackStart = not isBlackStart
         if isBlackStart:
-            window[yArray[len(yArray) - 1]:scr_height, xArray[i]:xArray[i + 1]] = black_cell
+            window[yArray[len(yArray) - 1]:scr_height, xArray[i]:xArray[i]+side] = black_cell
         else:
-            window[yArray[len(yArray) - 1]:scr_height, xArray[i]:xArray[i + 1]] = white_cell
-
-    isBlackStart = not isBlackStart
-    # и последнюю клетку в углу:
-    #black_cell = cv2.resize(black_cell, (scr_width - xArray[len(xArray) - 1], scr_height - yArray[len(yArray) - 1]))  # delete this later
-    #white_cell = cv2.resize(white_cell, (scr_width - xArray[len(xArray) - 1], scr_height - yArray[len(yArray) - 1]))  #
-    if isBlackStart:
-        black_cell = cv2.resize(black_cell, (scr_width - xArray[len(xArray) - 1], scr_height - yArray[len(yArray) - 1]))  # but this uncomment
-        window[yArray[len(yArray) - 1]:scr_height, xArray[len(xArray) - 1]:scr_width] = black_cell
-    else:
-        white_cell = cv2.resize(white_cell, (scr_width - xArray[len(xArray) - 1], scr_height - yArray[len(yArray) - 1]))
-        window[yArray[len(yArray) - 1]:scr_height, xArray[len(xArray) - 1]:scr_width] = white_cell
-
+            window[yArray[len(yArray) - 1]:scr_height, xArray[i]:xArray[i]+side] = white_cell
 
     swapBuffer = cv2.imread('girl.jpg')
     swapBuffer = cv2.resize(swapBuffer,(scr_width, scr_height))
-
-    for i in range(1000):
-        swapBuffer[:,0:scr_width-i] = window[:,i:scr_width] # сдвигаем влево как бы
-        if i != 0:
-            swapBuffer[:,scr_width-i:scr_width] = window[:,0:i]
-        out.write(swapBuffer)
-        #window = window[0:scr_height,-(scr_width-1):1]  # сдвигаем влево с циклом
+    if len(xArray)%2 ==0:
+        for i in range(1000):
+            swapBuffer = window[:,i%side:scr_width+i%side] # сдвигаем влево как бы
+            out.write(swapBuffer)
+    else:
+        for i in range(1000):
+            swapBuffer = window[:,i%side:scr_width+i%side] # сдвигаем влево как бы
+            out.write(swapBuffer)
+                #window = window[0:scr_height,-(scr_width-1):1]  # сдвигаем влево с циклом
     out.release()
     lbl4.config(text="done")
     #cv2.imshow('program', window)
