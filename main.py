@@ -10,30 +10,35 @@ def showVideo():
     scr_width = int(txt2.get())
     scr_height = int(txt3.get())
 
-    fourcc = cv2.VideoWriter_fourcc(*'divx')
+    #fourcc = cv2.VideoWriter_fourcc(*'divx')
     out = cv2.VideoWriter('output.mp4',0x00000021,10.0,(scr_width,scr_height))
 
     black_cell = cv2.imread('black_cell.jpg')
     white_cell = cv2.imread('white_cell.jpg')
 
-    window = cv2.imread('girl.jpg')
-    window = cv2.resize(window, (scr_width, scr_height))  # как фон
-
     diag_pix = sqrt(scr_width ** 2 + scr_height ** 2)  # диагональ в пикселях
     side = int(diag_pix / scr_diag)  # сторона клетки в пикселях (по идее 1 дюйм)
 
-    isBlackStart = False  # тоже переключатель, задающий цвет в начале каждой строки
-    x = 0
-    y = 0  # бегунки заполняющие поле
+    isBlackStart = False  # переключатель, задающий цвет в начале каждой строки
+
     xArray = np.arange(0, scr_width, side)
     yArray = np.arange(0, scr_height, side)  # координаты шахматной сетки по x и y
 
     black_cell = cv2.resize(black_cell, (side, side))
     white_cell = cv2.resize(white_cell, (side, side))
 
+    window = cv2.imread('girl.jpg')
+
+    if len(xArray) % 2 == 0:
+        window = cv2.resize(window(scr_width+side-scr_width%side,scr_height))
+    else:
+
+
+    window = cv2.resize(window, (scr_width, scr_height))  # как фон
+
     for i in range(len(yArray) - 1):
         isBlackStart = not isBlackStart
-        isBlack = isBlackStart
+        isBlack = isBlackStart # бегунок для строчки
         for j in range(len(xArray)):
             if j == len(xArray) - 1:  # если последняя клетка, то она будет обрезанной, нужно сначала изменить размер
 
