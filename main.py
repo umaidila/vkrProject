@@ -18,6 +18,8 @@ def showVideo():
     scr_diag = int(txt1.get())
     scr_width = int(txt2.get())
     scr_height = int(txt3.get())
+    timeSec = int(txt5.get())
+    fps = int(txt4.get())
 
     # fourcc = cv2.VideoWriter_fourcc(*'divx')
     out = cv2.VideoWriter('output.mp4', 0x00000021, int(txt4.get()), (scr_width, scr_height))
@@ -80,6 +82,7 @@ def showVideo():
     swapBuffer = cv2.resize(swapBuffer, (scr_width, scr_height))
     #test
     #
+
     for i in range(1000):
         swapBuffer = window[:, :scr_width]
         out.write(swapBuffer)
@@ -103,8 +106,11 @@ lbl3 = Label(window, text="Высота монитора (пикс): ", pady=5)
 lbl3.grid(column=0, row=2)
 lbl4 = Label(window, text="Частота обновления (кадров/сек):")
 lbl4.grid(column=0, row=3)
-lbl4 = Label(window)
-lbl4.grid(column=1, row=4)
+lbl5 = Label(window,text="Длительность (сек): ")
+lbl5.grid(column =0,row=4)
+
+lbl6 = Label(window)
+lbl6.grid(column=1, row=5)  # инфополе для вывода инфы что всё готово при завершении
 
 var1 = IntVar()
 var1.set(21)  # диагональ по умолчанию
@@ -114,6 +120,8 @@ var3 = IntVar()
 var3.set(768)
 var4 = IntVar()
 var4.set(30)
+var5 = IntVar()
+var5.set(60)
 
 txt1 = Spinbox(window, from_=17, to=40, width=7, textvariable=var1)
 txt1.grid(column=1, row=0)
@@ -123,6 +131,8 @@ txt3 = Entry(window, width=8, textvariable=var3)
 txt3.grid(column=1, row=2)
 txt4 = Spinbox(window, from_=5, to=120, width=7, textvariable=var4)
 txt4.grid(column=1, row=3)
+txt5 = Entry(window, width=8,textvariable=var5)
+txt5.grid(column=1,row=4)
 
 startButton = Button(window, text="Начать", command=showVideo, pady=5)
 startButton.grid(column=0, row=4)
