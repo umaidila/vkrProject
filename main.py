@@ -1,3 +1,4 @@
+import os
 from math import sqrt
 from tkinter import *
 import cv2
@@ -19,22 +20,7 @@ def showVideo():
     scr_height = int(txt3.get())
     duration = int(txt5.get())
     fps = int(txt4.get())
-    '''
-    qr1 = qrcode.QRCode(
-        version=1,
-        box_size=10,
-        border=5
-    )
-    qr1.add_data(1)
-    qr1.make(fit=True)
 
-    img1 = qr1.make_image(fill='black', back_color='white')
-    img1.save('temp1.png')
-    img1 = cv2.imread('temp1.png')
-    img1 = cv2.resize(img1, (200, 200))
-
-    '''
-    # fourcc = cv2.VideoWriter_fourcc(*'divx')
     out = cv2.VideoWriter('output.mp4', 0x00000021, int(txt4.get()), (scr_width, scr_height))
 
     black_cell = cv2.imread('black_cell.jpg')
@@ -59,17 +45,15 @@ def showVideo():
     if len(xArray) % 2 != 0:  # колво клеток по горизонтали должно быть чётным, чтобы при сдвиге соседние клетки были разного цвета
         print('нечёт')
         window = cv2.resize(window, (
-            (len(xArray)+1) * side,
+            (len(xArray) + 1) * side,
             scr_height))  # расширяем окно по х, чтобы нарисовать обрезанные клетки
-        xArray = np.arange(0, (len(xArray)+1) * side, side)
+        xArray = np.arange(0, (len(xArray) + 1) * side, side)
     else:
         print('чёт')
         window = cv2.resize(window, (
             (len(xArray)) * side,
             scr_height))  # расширяем окно по х, чтобы нарисовать обрезанные клетки
         xArray = np.arange(0, (len(xArray)) * side, side)
-
-    # window = cv2.resize(window, (scr_width, scr_height))  # как фон
 
     for i in range(len(yArray) - 1):
         isBlackStart = not isBlackStart
@@ -84,6 +68,7 @@ def showVideo():
 
     black_cell = cv2.resize(black_cell, (side, scr_height - yArray[len(yArray) - 1]))
     white_cell = cv2.resize(white_cell, (side, scr_height - yArray[len(yArray) - 1]))
+
     for i in range(len(xArray)):  # заполение нижнего столбца
         isBlackStart = not isBlackStart
         if isBlackStart:
@@ -93,14 +78,78 @@ def showVideo():
 
     swapBuffer = cv2.imread('girl.jpg')
     swapBuffer = cv2.resize(swapBuffer, (scr_width, scr_height))
-    # test
-    #
 
-    for i in range(1000):
-        swapBuffer = window[:, :scr_width]
-        #swapBuffer[-200:,-200:] = img1
-        out.write(swapBuffer)
-        window = shift(window, (len(xArray)) * side)
+    if chvar.get() == 0:  # нумерация qr-кодами
+        qrsize = round(scr_width / 5)
+        qrnum = 10  # количество вариантов кода
+        qrs = []  # варианты
+        for i in range(qrnum):
+            qr = qrcode.QRCode(
+                version=1,
+                box_size=10,
+                border=0
+            )
+            qr.add_data(i)
+            qr.make(fit=True)
+            img = qr.make_image(fill='black', back_color='white')
+            img.save(f'temp{i}.png')
+            img = cv2.imread(f'temp{i}.png')
+            img = cv2.resize(img, (qrsize, qrsize))
+            qrs.append(img)
+
+        swapBuffert = cv2.imread('girl.jpg')
+        swapBuffert = cv2.resize(swapBuffert, (scr_width, scr_height))
+
+        for i in range(duration * fps):
+            swapBuffer = window[:, :scr_width]
+            swapBuffert[:, :] = swapBuffer[:, :]
+            if i % 4 == 0:  # расположение кода в разных углах экрана
+                swapBuffert[-qrsize:, -qrsize:] = qrs[i % qrnum]
+            if i % 4 == 1:
+                swapBuffert[:qrsize, -qrsize:] = qrs[i % qrnum]
+            if i % 4 == 2:
+                swapBuffert[-qrsize:, :qrsize] = qrs[i % qrnum]
+            if i % 4 == 3:
+                swapBuffert[:qrsize, :qrsize] = qrs[i % qrnum]
+            out.write(swapBuffert)
+            window = shift(window, (len(xArray)) * side)
+
+        for i in range(qrnum):  # удаление оставшихся изображений кодов
+            os.remove(f'temp{i}.png')
+
+    if chvar.get() == 1:  # нумерация фигурами
+        cellsize = round(scr_width / 5)
+
+        redcell = cv2.imread('red_cell.jpg')
+        greeencell = cv2.imread('green_cell.jpg')
+        bluecell = cv2.imread('blue_cell.jpg')
+        yellowcell = cv2.imread('yellow_cell.jpg')
+        purplecell = cv2.imread('purple_cell.jpg')
+
+        redcell = cv2.resize(redcell, (cellsize, cellsize))
+        greeencell = cv2.resize(greeencell, (cellsize, cellsize))
+        bluecell = cv2.resize(bluecell, (cellsize, cellsize))
+        yellowcell = cv2.resize(yellowcell, (cellsize, cellsize))
+        purplecell = cv2.resize(purplecell, (cellsize, cellsize))
+
+        swapBuffert = cv2.imread('girl.jpg')
+        swapBuffert = cv2.resize(swapBuffert, (scr_width, scr_height))
+
+        for i in range(duration * fps):
+            swapBuffer = window[:, :scr_width]
+            swapBuffert[:, :] = swapBuffer[:, :]
+            if i % 5 == 0:  # расположение кода в разных углах экрана
+                swapBuffert[-cellsize:, -cellsize:] = redcell
+            if i % 5 == 1:
+                swapBuffert[:cellsize, -cellsize:] = greeencell
+            if i % 5 == 2:
+                swapBuffert[-cellsize:, :cellsize] = bluecell
+            if i % 5 == 3:
+                swapBuffert[:cellsize, :cellsize] = yellowcell
+            if i % 5 == 4:
+                swapBuffert[:cellsize, :cellsize] = purplecell
+            out.write(swapBuffert)
+            window = shift(window, (len(xArray)) * side)
 
     out.release()
     lbl6.config(text="done")
@@ -110,7 +159,7 @@ def showVideo():
 
 window = Tk()
 window.title("vkr")
-window.geometry('300x190')
+window.geometry('300x210')
 
 lbl1 = Label(window, text="Диагональ монитора (дюйм): ", padx=20, pady=5)
 lbl1.grid(column=0, row=0)
@@ -124,7 +173,14 @@ lbl5 = Label(window, text="Длительность (сек): ", pady=5)
 lbl5.grid(column=0, row=4)
 
 lbl6 = Label(window)
-lbl6.grid(column=1, row=5)  # инфополе для вывода инфы что всё готово при завершении
+lbl6.grid(column=1, row=6)  # инфополе для вывода инфы что всё готово при завершении
+
+chvar = IntVar()  # переменная выбора метода нумерации
+chvar.set(0)
+ch1 = Radiobutton(window, text="QR-коды", value=0, variable=chvar)
+ch1.grid(column=0, row=5)
+ch2 = Radiobutton(window, text="Фигуры", value=1, variable=chvar)
+ch2.grid(column=1, row=5)
 
 var1 = IntVar()
 var1.set(21)  # диагональ по умолчанию
@@ -149,5 +205,5 @@ txt5 = Entry(window, width=8, textvariable=var5)
 txt5.grid(column=1, row=4)
 
 startButton = Button(window, text="Начать", command=showVideo, pady=5)
-startButton.grid(column=0, row=5)
+startButton.grid(column=0, row=6)
 window.mainloop()
