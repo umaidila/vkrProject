@@ -36,6 +36,7 @@ def showVideo():
 
     xArray = np.arange(0, scr_width, side)
     yArray = np.arange(0, scr_height, side)  # координаты шахматной сетки по x и y
+    print(len(xArray),len(yArray))
 
     black_cell = cv2.resize(black_cell, (side, side))
     white_cell = cv2.resize(white_cell, (side, side))
