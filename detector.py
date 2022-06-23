@@ -1,4 +1,5 @@
 import sys
+import time
 from statistics import mean
 
 import cv2
@@ -102,6 +103,9 @@ class Detector:
         startFlag = False
         psnrlist = []
         missindex = 0
+        outText = ""
+        intervalFlag = False
+        startFrame = 0
 
         while True:
 
@@ -114,6 +118,8 @@ class Detector:
 
             if frameTest is None or frameSource is None:
                 print(" < < <  Game over!  > > > ")
+                with open('resurts.txt','w') as file:
+                    file.write(outText)
                 break
 
             framenum += 1
@@ -131,11 +137,24 @@ class Detector:
                     calibrationDelta = round(self.psnrTriggerValue) / 10
                     print("calibration done")
             else:
-                if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv):
+                if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv and startFlag):
+                    if not intervalFlag:
+                        intervalFlag = True
+                        startFrame = framenum
                     print("defect detected")
-                   # mssimv = self.getMSSISM(frameSource, frameTest)
-                   # print("MSSISM: R {}% G {}% B {}%".format(round(mssimv[2] * 100, 2), round(mssimv[1] * 100, 2),
-                   #                                          round(mssimv[0] * 100, 2)), end=" ")
+                else:
+                    if intervalFlag:
+                        intervalFlag = False
+                        endFrame = framenum
+
+                        ty_res1 = time.gmtime(round(startFrame/self.fps))
+                        startTime = time.strftime("%H:%M:%S",ty_res1)
+                        ty_res2 = time.gmtime(round(endFrame/self.fps))
+                        endTime = time.strftime("%H:%M:%S",ty_res2)
+                        outstr = "Defect interval: start - {}, (frame - {}); end - {}, (frame - {})\n".format(startTime,startFrame,endTime,endFrame)
+                        print(outstr)
+                        outText += outstr+"\n"
+
             if psnrv < 10 and not startFlag:  # значит, красный баннер закончился
                 print("starting...")
                 for i in range(self.fps * 2 - 1):
@@ -148,22 +167,4 @@ class Detector:
             k = cv2.waitKey(self.delay)
             if k == 27:
                 break
-        '''
-        cap = cv2.VideoCapture(self.videoTest)
-        success, image = cap.read()
 
-        while success:
-            # info, corners = cv2.findChessboardCornersSB(image, (self.cols, self.rows))
-            # print(info, corners)
-            try:
-                detect = cv2.QRCodeDetector()
-                value, points, straight_qrcode = detect.detectAndDecode(image)
-                print(value)
-            except:
-                pass
-
-            success, image = cap.read()
-
-        cap.release()
-        cv2.destroyAllWindows()
-            '''

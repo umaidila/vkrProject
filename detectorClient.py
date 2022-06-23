@@ -49,9 +49,7 @@ ch1.grid(column=0, row=6)
 ch2 = Radiobutton(window, text="Фигуры", value=1, variable=chvar)
 ch2.grid(column=1, row=6)
 
-lbl4 = Label(window,text="Выберите файл вывода")
-lbl4.grid(column=0,row=7)
-btn4 = Button(window,text="Выбрать",command=mydetector.detectDefect)
-btn4.grid(column=1,row=7,pady=10)
+btn4 = Button(window,text="Начать",command=mydetector.detectDefect)
+btn4.grid(column=0,row=7,pady=10)
 
 window.mainloop()
