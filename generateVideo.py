@@ -6,6 +6,8 @@ import numpy as np
 import qrcode
 
 
+
+
 def showVideo():
     def shift(a, l):  # смещение массива по горизонтали, l - длина
         temp = a[:, 0]
@@ -107,7 +109,7 @@ def showVideo():
         for i in range(duration * fps):
             swapBuffer = window[:, :scr_width]
             swapBuffert[:, :] = swapBuffer[:, :]
-
+            '''
             if i % 4 == 0:  # расположение кода в разных углах экрана
                 swapBuffert[-qrsize:, -qrsize:] = qrs[i % qrnum]
             if i % 4 == 1:
@@ -116,8 +118,11 @@ def showVideo():
                 swapBuffert[-qrsize:, :qrsize] = qrs[i % qrnum]
             if i % 4 == 3:
                 swapBuffert[:qrsize, :qrsize] = qrs[i % qrnum]
-
-            out.write(swapBuffert)
+            '''
+            if i < fps*2:
+                out.write(red_banner)
+            else:
+                out.write(swapBuffert)
             window = shift(window, (len(xArray)) * side)
 
         for i in range(qrnum):  # удаление оставшихся изображений кодов
@@ -144,6 +149,7 @@ def showVideo():
         for i in range(duration * fps):
             swapBuffer = window[:, :scr_width]
             swapBuffert[:, :] = swapBuffer[:, :]
+            '''
             if i % 5 == 0:  # расположение кода в разных углах экрана
                 swapBuffert[-cellsize:, -cellsize:] = redcell
             if i % 5 == 1:
@@ -154,7 +160,8 @@ def showVideo():
                 swapBuffert[:cellsize, :cellsize] = yellowcell
             if i % 5 == 4:
                 swapBuffert[:cellsize, :cellsize] = purplecell
-            if i < fps*5:
+                '''
+            if i < fps*2:
                 out.write(red_banner)
             else:
                 out.write(swapBuffert)

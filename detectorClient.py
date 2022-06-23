@@ -17,8 +17,8 @@ window.title("vkr")
 
 
 def getPath():
-    mydetector.path = askopenfilename()
-    print(mydetector.path)
+    mydetector.videoTest = askopenfilename()
+    print(mydetector.videoTest)
 
 
 lbl1 = Label(window, text="Выберите видеофайл: ", padx=20, pady=10)
