@@ -1,4 +1,5 @@
 import sys
+from statistics import mean
 
 import cv2
 import numpy as np
@@ -13,6 +14,7 @@ class Detector:
         self.videoSource = "source.mp4"
         self.psnrTriggerValue = 30
         self.delay = 30
+        self.fps = 30
 
     def getPSNR(self, I1, I2):
         s1 = cv2.absdiff(I1, I2)  # |I1 - I2|
@@ -61,6 +63,7 @@ class Detector:
 
     def detectDefect(self):
 
+        calibrationDelta = 0
         capTest = cv2.VideoCapture(cv2.samples.findFileOrKeep(self.videoTest))
         capSource = cv2.VideoCapture(cv2.samples.findFileOrKeep(self.videoSource))
 
@@ -80,36 +83,65 @@ class Detector:
             print("Inputs have different size!!! Closing.")
             sys.exit(-1)
 
+        red_banner = cv2.imread('red_cell.jpg')
+        red_banner = cv2.resize(red_banner, sizeSource)
+
         WIN_UT = "Under Test"
         WIN_RF = "Source"
 
-        cv2.namedWindow(WIN_RF, cv2.WINDOW_AUTOSIZE)
-        cv2.namedWindow(WIN_UT, cv2.WINDOW_AUTOSIZE)
-        cv2.moveWindow(WIN_RF, 400, 0)  # 750,  2 (bernat =0)
-        cv2.moveWindow(WIN_UT, sizeSource[0], 0)  # 1500, 2
+        # cv2.namedWindow(WIN_RF, cv2.WINDOW_AUTOSIZE)
+        # cv2.namedWindow(WIN_UT, cv2.WINDOW_AUTOSIZE)
+        # cv2.moveWindow(WIN_RF, 400, 0)  # 750,  2 (bernat =0)
+        # cv2.moveWindow(WIN_UT, sizeSource[0], 0)  # 1500, 2
 
         print("Reference frame resolution: Width={} Height={} of nr#: {}".format(sizeSource[0], sizeSource[1],
                                                                                  capSource.get(
                                                                                      cv2.CAP_PROP_FRAME_COUNT)))
         print("PSNR trigger value {}".format(self.psnrTriggerValue))
 
+        startFlag = False
+        psnrlist = []
+        missindex = 0
+
         while True:
-            _,frameSource = capSource.read()
-            _,frameTest = capTest.read()
+
+            _, frameTest = capTest.read()
+
+            if not startFlag:  # если не начали, пока сравниваем с красным баннером
+                frameSource = red_banner
+            else:
+                _, frameSource = capSource.read()
 
             if frameTest is None or frameSource is None:
                 print(" < < <  Game over!  > > > ")
                 break
 
-            framenum+=1
-            psnrv = self.getPSNR(frameSource,frameTest)
+            framenum += 1
+            psnrv = self.getPSNR(frameSource, frameTest)
 
             print("Frame: {}# {}dB".format(framenum, round(psnrv, 3)), end=" ")
 
-            if (psnrv < self.psnrTriggerValue and psnrv):
-                mssimv = self.getMSSISM(frameSource, frameTest)
-                print("MSSISM: R {}% G {}% B {}%".format(round(mssimv[2] * 100, 2), round(mssimv[1] * 100, 2),
-                                                         round(mssimv[0] * 100, 2)), end=" ")
+            if startFlag and len(psnrlist) != 15:
+                if missindex != 2:
+                    missindex += 1
+                else:
+                    psnrlist.append(psnrv)
+                if len(psnrlist) == 15:
+                    self.psnrTriggerValue = mean(psnrlist)
+                    calibrationDelta = round(self.psnrTriggerValue) / 10
+                    print("calibration done")
+            else:
+                if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv):
+                    print("defect detected")
+                   # mssimv = self.getMSSISM(frameSource, frameTest)
+                   # print("MSSISM: R {}% G {}% B {}%".format(round(mssimv[2] * 100, 2), round(mssimv[1] * 100, 2),
+                   #                                          round(mssimv[0] * 100, 2)), end=" ")
+            if psnrv < 10 and not startFlag:  # значит, красный баннер закончился
+                print("starting...")
+                for i in range(self.fps * 2 - 1):
+                    _, frameSource = capSource.read()
+                startFlag = True
+
             print()
             cv2.imshow(WIN_RF, frameSource)
             cv2.imshow(WIN_UT, frameTest)
