@@ -5,7 +5,7 @@ class Detector:
 
     path = "none"
     rows = 13
-    cols = 18
+    cols = 16
 
     def detectDefect(self):
 

@@ -29,6 +29,9 @@ def showVideo():
     temp = cv2.imread('black_cell.jpg')
     temp = cv2.resize(temp, (1, scr_height))
 
+    red_banner = cv2.imread('red_cell.jpg')
+    red_banner = cv2.resize(red_banner,(scr_width,scr_height))
+
     diag_pix = sqrt(scr_width ** 2 + scr_height ** 2)  # диагональ в пикселях
     side = int(diag_pix / scr_diag)  # сторона клетки в пикселях (по идее 1 дюйм)
 
@@ -104,6 +107,7 @@ def showVideo():
         for i in range(duration * fps):
             swapBuffer = window[:, :scr_width]
             swapBuffert[:, :] = swapBuffer[:, :]
+
             if i % 4 == 0:  # расположение кода в разных углах экрана
                 swapBuffert[-qrsize:, -qrsize:] = qrs[i % qrnum]
             if i % 4 == 1:
@@ -112,6 +116,7 @@ def showVideo():
                 swapBuffert[-qrsize:, :qrsize] = qrs[i % qrnum]
             if i % 4 == 3:
                 swapBuffert[:qrsize, :qrsize] = qrs[i % qrnum]
+
             out.write(swapBuffert)
             window = shift(window, (len(xArray)) * side)
 
@@ -149,7 +154,10 @@ def showVideo():
                 swapBuffert[:cellsize, :cellsize] = yellowcell
             if i % 5 == 4:
                 swapBuffert[:cellsize, :cellsize] = purplecell
-            out.write(swapBuffert)
+            if i < fps*5:
+                out.write(red_banner)
+            else:
+                out.write(swapBuffert)
             window = shift(window, (len(xArray)) * side)
 
     out.release()
