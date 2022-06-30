@@ -8,13 +8,13 @@ import numpy as np
 
 class Detector:
     videoTest = "none"
+    videoSource = "none"
     rows = 5
     cols = 5
 
     def __init__(self):
-        self.videoSource = "source.mp4"
         self.psnrTriggerValue = 30
-        self.delay = 30
+        self.delay = 20
         self.fps = 30
 
     def getPSNR(self, I1, I2):
