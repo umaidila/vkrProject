@@ -16,6 +16,9 @@ class Detector:
         self.psnrTriggerValue = 30
         self.delay = 20
         self.fps = 30
+        self.numLength = 10
+        self.logs = ""
+        self.reportMsg = ""
 
     def getPSNR(self, I1, I2):
         s1 = cv2.absdiff(I1, I2)  # |I1 - I2|
@@ -62,6 +65,25 @@ class Detector:
         mssim = cv2.mean(ssim_map)  # mssim = average of ssim map
         return mssim
 
+    def checkFrameSequence(self,numPred,numCurr): # 0 - все ок, 1 - пропуск, 2 - повтор
+        #print("Проверка",numPred,numCurr)
+        if  numPred == numCurr:
+            return 2
+        if numCurr == 0: # если текущий номер 0, делаем его 10 для цикличности
+            numCurr = self.numLength
+        if numCurr != numPred + 1:
+            return 1
+        else:
+            return 0
+
+
+    def newLog(self,msg):
+        self.logs+=msg
+        print(msg)
+
+    def newReport(self,msg):
+        self.reportMsg+=msg
+
     def detectDefect(self,numType):
 
         calibrationDelta = 0
@@ -95,10 +117,10 @@ class Detector:
         # cv2.moveWindow(WIN_RF, 400, 0)  # 750,  2 (bernat =0)
         # cv2.moveWindow(WIN_UT, sizeSource[0], 0)  # 1500, 2
 
-        print("Reference frame resolution: Width={} Height={} of nr#: {}".format(sizeSource[0], sizeSource[1],
-                                                                                 capSource.get(
-                                                                                     cv2.CAP_PROP_FRAME_COUNT)))
-        print("PSNR trigger value {}".format(self.psnrTriggerValue))
+        #print("Reference frame resolution: Width={} Height={} of nr#: {}".format(sizeSource[0], sizeSource[1],
+        #                                                                         capSource.get(
+        #                                                                             cv2.CAP_PROP_FRAME_COUNT)))
+        #print("PSNR trigger value {}".format(self.psnrTriggerValue))
 
         startFlag = False
         psnrlist = []
@@ -107,6 +129,7 @@ class Detector:
         intervalFlag = False
         startFrame = 0
         qrDetector = cv2.QRCodeDetector()
+        prev_num = -1
 
         while True:
 
@@ -118,22 +141,41 @@ class Detector:
                 _, frameSource = capSource.read()
 
             if frameTest is None or frameSource is None:
-                print(" < < <  Game over!  > > > ")
-                with open('resurts.txt','w') as file:
-                    file.write(outText)
+                print(" END! ")
+                with open('report.txt','w') as file:
+                    file.write(self.reportMsg)
+                with open('logs.txt', 'w') as file:
+                    file.write(self.logs)
                 break
 
             framenum += 1
             psnrv = self.getPSNR(frameSource, frameTest)
             value = -1
+            startAnalyzeFrame = -1
 
-            if numType == 0:
-                img = cv2.imread("temp0.png")
-                value, points, straight_qrcode = qrDetector.detectAndDecode(img)
-              #  qr1.decode(frameTest)
-                print(value)
+            if numType == 0 and startFlag:
+                value, points, straight_qrcode = qrDetector.detectAndDecode(frameTest)
+                value = "none" if value == "" else value
+                if prev_num == -1:
+                    prev_num = value
+                else:
+                    if prev_num != "none" and value != "none":
+                        result = self.checkFrameSequence(int(prev_num),int(value))
+                        if result == 1:
+                            self.newLog("Пропуск кадров")
+                            res1 = time.gmtime(round(framenum / self.fps))
+                            timeStamp = time.strftime("%H:%M:%S", res1)
+                            self.newReport("Пропуск кадров, кадр: {}, время: {}\n".format(framenum,timeStamp))
+                        if result == 2:
+                            self.newLog("Повтор кадров")
+                            res1 = time.gmtime(round(framenum / self.fps))
+                            timeStamp = time.strftime("%H:%M:%S", res1)
+                            self.newReport("Повтор кадров, кадр: {}, время: {}\n".format(framenum, timeStamp))
+                    prev_num = value
 
-            print("Frame: {}# {}dB# num: {}".format(framenum, round(psnrv, 3),value), end=" ")
+
+            self.newLog("Кадр: {}# {}dB# номер: {} ".format(framenum, round(psnrv, 3),value))
+            #print("Кадр: {}# {}dB# номер: {}".format(framenum, round(psnrv, 3),value), end=" ")
 
             if startFlag and len(psnrlist) != 15: # до сравнения
                 if missindex != 2:
@@ -143,13 +185,13 @@ class Detector:
                 if len(psnrlist) == 15:
                     self.psnrTriggerValue = mean(psnrlist)
                     calibrationDelta = round(self.psnrTriggerValue) / 10 # здесь высчитываем порог для дефекта
-                    print("calibration done")
+                    self.newLog("calibration done")
             else:
                 if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv and startFlag):
                     if not intervalFlag:
                         intervalFlag = True
                         startFrame = framenum # здесь дефект начинается
-                    print("defect detected")
+                    self.newLog("Испорчено изображение\n")
                 else:
                     if intervalFlag: # здесь дефект закончился
                         intervalFlag = False
@@ -159,9 +201,9 @@ class Detector:
                         startTime = time.strftime("%H:%M:%S",ty_res1)
                         ty_res2 = time.gmtime(round(endFrame/self.fps))
                         endTime = time.strftime("%H:%M:%S",ty_res2)
-                        outstr = "Defect interval: start - {}, (frame - {}); end - {}, (frame - {})\n".format(startTime,startFrame,endTime,endFrame)
-                        print(outstr)
-                        outText += outstr+"\n"
+
+                        self.newLog("Интервал дефекта: начало - {}, (кадр - {}); конец - {}, (кадр - {})\n".format(startTime,startFrame,endTime,endFrame))
+                        self.newReport("Дефект изображения: начало - {}, (кадр - {}); конец - {}, (кадр - {})\n".format(startTime,startFrame,endTime,endFrame))
 
             if psnrv < 10 and not startFlag:  # значит, красный баннер закончился
                 print("starting...")

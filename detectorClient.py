@@ -19,10 +19,12 @@ window.title("vkr")
 
 def getPathSource():
     mydetector.videoSource = askopenfilename()
+    lbl1.config(text="Исходный видеофайл(выбран): ")
 
 
 def getPathTest():
     mydetector.videoTest = askopenfilename()
+    lbl6.config(text="Отснятый видеофайл(выбран):")
 
 
 lbl1 = Label(window, text="Исходный видеофайл: ", padx=20, pady=10)
@@ -30,8 +32,8 @@ lbl1.grid(column=0, row=0)
 btn1 = Button(window, text="Выбрать", command=getPathSource)
 btn1.grid(column=1, row=0, padx=15)
 
-lbl5 = Label(window, text="Отснятый видеофайл: ", padx=20, pady=10)
-lbl5.grid(column=0, row=1)
+lbl6 = Label(window, text="Отснятый видеофайл: ", padx=20, pady=10)
+lbl6.grid(column=0, row=1)
 btn5 = Button(window, text="Выбрать", command=getPathTest)
 btn5.grid(column=1, row=1, padx=15)
 
