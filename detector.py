@@ -62,7 +62,7 @@ class Detector:
         mssim = cv2.mean(ssim_map)  # mssim = average of ssim map
         return mssim
 
-    def detectDefect(self):
+    def detectDefect(self,numType):
 
         calibrationDelta = 0
         capTest = cv2.VideoCapture(cv2.samples.findFileOrKeep(self.videoTest))
@@ -106,6 +106,7 @@ class Detector:
         outText = ""
         intervalFlag = False
         startFrame = 0
+        qrDetector = cv2.QRCodeDetector()
 
         while True:
 
@@ -124,26 +125,33 @@ class Detector:
 
             framenum += 1
             psnrv = self.getPSNR(frameSource, frameTest)
+            value = -1
 
-            print("Frame: {}# {}dB".format(framenum, round(psnrv, 3)), end=" ")
+            if numType == 0:
+                img = cv2.imread("temp0.png")
+                value, points, straight_qrcode = qrDetector.detectAndDecode(img)
+              #  qr1.decode(frameTest)
+                print(value)
 
-            if startFlag and len(psnrlist) != 15:
+            print("Frame: {}# {}dB# num: {}".format(framenum, round(psnrv, 3),value), end=" ")
+
+            if startFlag and len(psnrlist) != 15: # до сравнения
                 if missindex != 2:
-                    missindex += 1
+                    missindex += 1 # пропускаем первые пару кадров
                 else:
-                    psnrlist.append(psnrv)
+                    psnrlist.append(psnrv) # добавляем в список для калибровки
                 if len(psnrlist) == 15:
                     self.psnrTriggerValue = mean(psnrlist)
-                    calibrationDelta = round(self.psnrTriggerValue) / 10
+                    calibrationDelta = round(self.psnrTriggerValue) / 10 # здесь высчитываем порог для дефекта
                     print("calibration done")
             else:
                 if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv and startFlag):
                     if not intervalFlag:
                         intervalFlag = True
-                        startFrame = framenum
+                        startFrame = framenum # здесь дефект начинается
                     print("defect detected")
                 else:
-                    if intervalFlag:
+                    if intervalFlag: # здесь дефект закончился
                         intervalFlag = False
                         endFrame = framenum
 

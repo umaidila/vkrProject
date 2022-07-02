@@ -16,12 +16,13 @@ window = Tk()
 window.title("vkr")
 
 
+
 def getPathSource():
     mydetector.videoSource = askopenfilename()
 
 
 def getPathTest():
-    mydetector.videoSource = askopenfilename()
+    mydetector.videoTest = askopenfilename()
 
 
 lbl1 = Label(window, text="Исходный видеофайл: ", padx=20, pady=10)
@@ -50,7 +51,7 @@ ch1.grid(column=0, row=6)
 ch2 = Radiobutton(window, text="Фигуры", value=1, variable=chvar)
 ch2.grid(column=1, row=6)
 
-btn4 = Button(window, text="Начать", command=mydetector.detectDefect)
+btn4 = Button(window, text="Начать", command= lambda : mydetector.detectDefect(chvar.get()))
 btn4.grid(column=0, row=7, pady=10)
 
 window.mainloop()

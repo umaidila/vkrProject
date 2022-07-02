@@ -90,14 +90,14 @@ def showVideo():
         qrnum = 10  # количество вариантов кода
         qrs = []  # варианты
         for i in range(qrnum):
-            qr = qrcode.QRCode(
-                version=1,
-                box_size=10,
-                border=0
-            )
-            qr.add_data(i)
-            qr.make(fit=True)
-            img = qr.make_image(fill='black', back_color='white')
+            #qr = qrcode.QRCode(
+            #    version=1,
+            #    box_size=10,
+             #   border=0
+            #)
+            #qr.add_data(i.__str__()+"frame")
+            #img = qr.make_image(fill='black', back_color='white')
+            img = qrcode.make(i)
             img.save(f'temp{i}.png')
             img = cv2.imread(f'temp{i}.png')
             img = cv2.resize(img, (qrsize, qrsize))
@@ -109,7 +109,7 @@ def showVideo():
         for i in range(duration * fps):
             swapBuffer = window[:, :scr_width]
             swapBuffert[:, :] = swapBuffer[:, :]
-            '''
+
             if i % 4 == 0:  # расположение кода в разных углах экрана
                 swapBuffert[-qrsize:, -qrsize:] = qrs[i % qrnum]
             if i % 4 == 1:
@@ -118,13 +118,14 @@ def showVideo():
                 swapBuffert[-qrsize:, :qrsize] = qrs[i % qrnum]
             if i % 4 == 3:
                 swapBuffert[:qrsize, :qrsize] = qrs[i % qrnum]
-            '''
+
             if i < fps*2:
                 out.write(red_banner)
             else:
                 out.write(swapBuffert)
             window = shift(window, (len(xArray)) * side)
 
+        print("generated")
         for i in range(qrnum):  # удаление оставшихся изображений кодов
             os.remove(f'temp{i}.png')
 
@@ -167,6 +168,7 @@ def showVideo():
                 out.write(swapBuffert)
             window = shift(window, (len(xArray)) * side)
 
+    print("releasing")
     out.release()
     lbl6.config(text="done")
     # cv2.imshow('program', window)
@@ -201,9 +203,9 @@ ch2.grid(column=1, row=5)
 var1 = IntVar()
 var1.set(21)  # диагональ по умолчанию
 var2 = IntVar()
-var2.set(1024)
+var2.set(1280)
 var3 = IntVar()
-var3.set(768)
+var3.set(720)
 var4 = IntVar()
 var4.set(30)
 var5 = IntVar()
