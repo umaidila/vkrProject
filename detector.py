@@ -161,20 +161,21 @@ class Detector:
                 self.newLog("Исходная и восстановленная последовательность:")
                 outMsg = ""
                 for i in range(len(qrList)):
-                    outMsg+="Кадр: {} ".format(i)+str(qrList[i])+" - " + str(qrListNew[i])+ "\n"
+                    formatInt = str(qrList[i]) if qrList[i]== -1 else " "+str(qrList[i])
+                    outMsg+="Кадр: {} ".format(i)+formatInt+" - " + str(qrListNew[i])+ "\n"
                 self.newLog(outMsg)
-                self.newReport(outMsg)
+                #self.newReport(outMsg)
 
                 # ищем пропуски и дубли
                 for i in range(len(qrListNew)-1):
                     result = self.checkFrameSequence(qrListNew[i],qrListNew[i+1])
                     if result == 1:
-                        res1 = time.gmtime(round(i+self.fps*2 / self.fps))
+                        res1 = time.gmtime(round(i / self.fps))
                         timeStamp = time.strftime("%H:%M:%S", res1)
                         self.newReport("Пропуск кадров, кадр: {}, время: {}\n".format(i, timeStamp))
                         self.newLog("Пропуск кадров, кадр: {}, время: {}\n".format(i, timeStamp))
                     if result == 2:
-                        res1 = time.gmtime(round(i+self.fps*2 / self.fps))
+                        res1 = time.gmtime(round(i / self.fps))
                         timeStamp = time.strftime("%H:%M:%S", res1)
                         self.newReport("Повтор кадров, кадр: {}, время: {}\n".format(i, timeStamp))
                         self.newLog("Повтор кадров, кадр: {}, время: {}\n".format(i, timeStamp))
@@ -197,26 +198,9 @@ class Detector:
                 value = -1 if value not in ["0","1","2","3","4","5","6","7","8","9"] else value
                 qrList.append(int(value))
 
-                '''
-                if prev_num == -1:
-                    prev_num = value
-                else:
-                    if prev_num != "none" and value != "none":
-                        result = self.checkFrameSequence(int(prev_num),int(value))
-                        if result == 1:
-                            self.newLog("Пропуск кадров")
-                            res1 = time.gmtime(round(framenum / self.fps))
-                            timeStamp = time.strftime("%H:%M:%S", res1)
-                            self.newReport("Пропуск кадров, кадр: {}, время: {}\n".format(framenum,timeStamp))
-                        if result == 2:
-                            self.newLog("Повтор кадров")
-                            res1 = time.gmtime(round(framenum / self.fps))
-                            timeStamp = time.strftime("%H:%M:%S", res1)
-                            self.newReport("Повтор кадров, кадр: {}, время: {}\n".format(framenum, timeStamp))
-                    prev_num = value
-                '''
 
-            self.newLog("Кадр: {}# {}dB# номер: {} \n".format(framenum, round(psnrv, 3),value))
+            #self.newLog("Кадр: {}# {}dB# номер: {} \n".format(framenum, round(psnrv, 3),value))
+            self.newLog("Кадр: {}#  номер: {} \n".format(framenum, value))
             #print("Кадр: {}# {}dB# номер: {}".format(framenum, round(psnrv, 3),value), end=" ")
 
             if startFlag and len(psnrlist) != 15: # до сравнения
@@ -226,7 +210,7 @@ class Detector:
                     psnrlist.append(psnrv) # добавляем в список для калибровки
                 if len(psnrlist) == 15:
                     self.psnrTriggerValue = mean(psnrlist)
-                    calibrationDelta = round(self.psnrTriggerValue) / 10 # здесь высчитываем порог для дефекта
+                    calibrationDelta = round(self.psnrTriggerValue) * 0.07# здесь высчитываем порог для дефекта
                     self.newLog("calibration done")
             else:
                 if (psnrv < self.psnrTriggerValue-calibrationDelta and psnrv and startFlag):
@@ -254,7 +238,6 @@ class Detector:
                 startFlag = True
 
             #print()
-            cv2.imshow(WIN_RF, frameSource)
             cv2.imshow(WIN_UT, frameTest)
             k = cv2.waitKey(self.delay)
             if k == 27:

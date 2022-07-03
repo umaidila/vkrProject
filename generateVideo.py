@@ -151,7 +151,6 @@ def showVideo():
         for i in range(duration * fps):
             swapBuffer = window[:, :scr_width]
             swapBuffert[:, :] = swapBuffer[:, :]
-            '''
             if i % 5 == 0:  # расположение кода в разных углах экрана
                 swapBuffert[-cellsize:, -cellsize:] = redcell
             if i % 5 == 1:
@@ -162,7 +161,7 @@ def showVideo():
                 swapBuffert[:cellsize, :cellsize] = yellowcell
             if i % 5 == 4:
                 swapBuffert[:cellsize, :cellsize] = purplecell
-                '''
+
             if i < fps*2:
                 out.write(red_banner)
             else:
