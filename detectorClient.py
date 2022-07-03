@@ -37,23 +37,17 @@ lbl6.grid(column=0, row=1)
 btn5 = Button(window, text="Выбрать", command=getPathTest)
 btn5.grid(column=1, row=1, padx=15)
 
-lbl2 = Label(window, text="Обнаружить дефекты:", pady=5)
-lbl2.grid(column=0, row=2)
-btn2 = Checkbutton(window, text="Испорченное изображение")
-btn2.grid(column=0, row=3)
-btn3 = Checkbutton(window, text="Пропуск и повтор кадра")
-btn3.grid(column=0, row=4)
 
 chvar = IntVar()  # переменная выбора метода нумерации
 chvar.set(0)
 lbl5 = Label(window, text="Нумерация:")
-lbl5.grid(column=0, row=5)
+lbl5.grid(column=0, row=2)
 ch1 = Radiobutton(window, text="QR-коды", value=0, variable=chvar)
-ch1.grid(column=0, row=6)
+ch1.grid(column=0, row=3)
 ch2 = Radiobutton(window, text="Фигуры", value=1, variable=chvar)
-ch2.grid(column=1, row=6)
+ch2.grid(column=1, row=3)
 
 btn4 = Button(window, text="Начать", command= lambda : mydetector.detectDefect(chvar.get()))
-btn4.grid(column=0, row=7, pady=10)
+btn4.grid(column=0, row=4, pady=10)
 
 window.mainloop()
