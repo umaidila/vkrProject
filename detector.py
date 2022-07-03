@@ -14,7 +14,7 @@ class Detector:
 
     def __init__(self):
         self.psnrTriggerValue = 30
-        self.delay = 10
+        self.delay = 5
         self.fps = 30
         self.numLength = 10
         self.logs = ""
