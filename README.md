@@ -1,6 +1,6 @@
 # vkrProject
 
-### Модуль генерации - generateVideo.py
+### Модуль генерации тестового видео - generateVideo.py
 
 ### Модуль обнаружения дефектов - detectorClient.py
 
