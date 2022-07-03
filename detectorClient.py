@@ -38,16 +38,7 @@ btn5 = Button(window, text="Выбрать", command=getPathTest)
 btn5.grid(column=1, row=1, padx=15)
 
 
-chvar = IntVar()  # переменная выбора метода нумерации
-chvar.set(0)
-lbl5 = Label(window, text="Нумерация:")
-lbl5.grid(column=0, row=2)
-ch1 = Radiobutton(window, text="QR-коды", value=0, variable=chvar)
-ch1.grid(column=0, row=3)
-ch2 = Radiobutton(window, text="Фигуры", value=1, variable=chvar)
-ch2.grid(column=1, row=3)
-
-btn4 = Button(window, text="Начать", command= lambda : mydetector.detectDefect(chvar.get()))
-btn4.grid(column=0, row=4, pady=10)
+btn4 = Button(window, text="Начать", command=mydetector.detectDefect)
+btn4.grid(column=0, row=2, pady=10)
 
 window.mainloop()

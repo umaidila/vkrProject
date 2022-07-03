@@ -14,7 +14,7 @@ class Detector:
 
     def __init__(self):
         self.psnrTriggerValue = 30
-        self.delay = 20
+        self.delay = 10
         self.fps = 30
         self.numLength = 10
         self.logs = ""
@@ -69,12 +69,17 @@ class Detector:
         #print("Проверка",numPred,numCurr)
         if  numPred == numCurr:
             return 2
-        if numCurr == 0: # если текущий номер 0, делаем его 10 для цикличности
-            numCurr = self.numLength
-        if numCurr != numPred + 1:
-            return 1
+        if numCurr == 0: # отдельно обработаем случай, когда текущий - 0, тогда предыдущий должен быть равен 9
+            if numPred == self.numLength-1:
+                return 0
+            else:
+                return 1
         else:
-            return 0
+            if numPred+1 == numCurr:
+                return 0
+            else:
+                return 1
+
 
 
     def newLog(self,msg):
@@ -84,7 +89,7 @@ class Detector:
     def newReport(self,msg):
         self.reportMsg+=msg
 
-    def detectDefect(self,numType):
+    def detectDefect(self):
 
         calibrationDelta = 0
         capTest = cv2.VideoCapture(cv2.samples.findFileOrKeep(self.videoTest))
@@ -130,6 +135,8 @@ class Detector:
         startFrame = 0
         qrDetector = cv2.QRCodeDetector()
         prev_num = -1
+        qrList = []
+        qrListNew = []
 
         while True:
 
@@ -142,6 +149,38 @@ class Detector:
 
             if frameTest is None or frameSource is None:
                 print(" END! ")
+
+                # востанавливаем последовательность
+                qrListNew.append(qrList[0])
+                for i in range(len(qrList)-1):
+                    if qrList[i+1]==-1:
+                        qrListNew.append(qrListNew[i]+1 if qrListNew[i]!=self.numLength-1 else 0)
+                    else:
+                        qrListNew.append(qrList[i+1])
+
+                self.newLog("Исходная и восстановленная последовательность:")
+                outMsg = ""
+                for i in range(len(qrList)):
+                    outMsg+="Кадр: {} ".format(i)+str(qrList[i])+" - " + str(qrListNew[i])+ "\n"
+                self.newLog(outMsg)
+                self.newReport(outMsg)
+
+                # ищем пропуски и дубли
+                for i in range(len(qrListNew)-1):
+                    result = self.checkFrameSequence(qrListNew[i],qrListNew[i+1])
+                    if result == 1:
+                        res1 = time.gmtime(round(i+self.fps*2 / self.fps))
+                        timeStamp = time.strftime("%H:%M:%S", res1)
+                        self.newReport("Пропуск кадров, кадр: {}, время: {}\n".format(i, timeStamp))
+                        self.newLog("Пропуск кадров, кадр: {}, время: {}\n".format(i, timeStamp))
+                    if result == 2:
+                        res1 = time.gmtime(round(i+self.fps*2 / self.fps))
+                        timeStamp = time.strftime("%H:%M:%S", res1)
+                        self.newReport("Повтор кадров, кадр: {}, время: {}\n".format(i, timeStamp))
+                        self.newLog("Повтор кадров, кадр: {}, время: {}\n".format(i, timeStamp))
+
+
+
                 with open('report.txt','w') as file:
                     file.write(self.reportMsg)
                 with open('logs.txt', 'w') as file:
@@ -153,9 +192,12 @@ class Detector:
             value = -1
             startAnalyzeFrame = -1
 
-            if numType == 0 and startFlag:
+            if startFlag:
                 value, points, straight_qrcode = qrDetector.detectAndDecode(frameTest)
-                value = "none" if value == "" else value
+                value = -1 if value not in ["0","1","2","3","4","5","6","7","8","9"] else value
+                qrList.append(int(value))
+
+                '''
                 if prev_num == -1:
                     prev_num = value
                 else:
@@ -172,9 +214,9 @@ class Detector:
                             timeStamp = time.strftime("%H:%M:%S", res1)
                             self.newReport("Повтор кадров, кадр: {}, время: {}\n".format(framenum, timeStamp))
                     prev_num = value
+                '''
 
-
-            self.newLog("Кадр: {}# {}dB# номер: {} ".format(framenum, round(psnrv, 3),value))
+            self.newLog("Кадр: {}# {}dB# номер: {} \n".format(framenum, round(psnrv, 3),value))
             #print("Кадр: {}# {}dB# номер: {}".format(framenum, round(psnrv, 3),value), end=" ")
 
             if startFlag and len(psnrlist) != 15: # до сравнения
@@ -211,7 +253,7 @@ class Detector:
                     _, frameSource = capSource.read()
                 startFlag = True
 
-            print()
+            #print()
             cv2.imshow(WIN_RF, frameSource)
             cv2.imshow(WIN_UT, frameTest)
             k = cv2.waitKey(self.delay)

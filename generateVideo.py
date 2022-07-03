@@ -90,14 +90,15 @@ def showVideo():
         qrnum = 10  # количество вариантов кода
         qrs = []  # варианты
         for i in range(qrnum):
-            #qr = qrcode.QRCode(
-            #    version=1,
-            #    box_size=10,
-             #   border=0
-            #)
-            #qr.add_data(i.__str__()+"frame")
-            #img = qr.make_image(fill='black', back_color='white')
-            img = qrcode.make(i)
+            qr = qrcode.QRCode(
+                version=1,
+                box_size=10,
+                border=2
+            )
+            qr.add_data(i)
+            qr.make(fit=True)
+            img = qr.make_image(back_color="yellow", fill_color="blue")
+            #img = qrcode.make(i)
             img.save(f'temp{i}.png')
             img = cv2.imread(f'temp{i}.png')
             img = cv2.resize(img, (qrsize, qrsize))
